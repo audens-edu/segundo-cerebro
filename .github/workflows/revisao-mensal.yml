@@ -1,0 +1,21 @@
+name: revisao-mensal
+on:
+  schedule:
+    - cron: "0 12 1 * *"   # dia 1 de cada mês, 9h em Recife
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  revisao:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/scripts/revisao_mensal.py > corpo.md
+      - name: Abrir issue se houver documentos vencidos
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -s corpo.md ]; then
+            gh issue create --title "Revisão mensal: documentos vencidos ($(date +%m/%Y))" --body-file corpo.md
+          fi
